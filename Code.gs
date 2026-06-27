@@ -2,7 +2,8 @@
  * @OnlyCurrentDoc
  */
 
-const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE';
+// Paste the ID from your "Three60" Google Sheet URL: docs.google.com/spreadsheets/d/{THIS_PART}/edit
+const SHEET_ID = 'YOUR_THREE60_SHEET_ID_HERE';
 const NOTIFY_EMAIL = 'sameer.rajwade@capitalone.com';
 
 function doGet(e) {

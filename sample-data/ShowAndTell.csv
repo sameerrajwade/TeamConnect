@@ -1,0 +1,6 @@
+Timestamp,PresenterName,Team,Topic,Description,Status,EventTitle
+2025-06-10T10:00:00,Priya Sharma,CDPS,How we cut pipeline runtime by 60%,Deep dive into our data pipeline optimization — before/after benchmarks and the architecture changes that made it possible,Approved,July Connect
+2025-06-15T14:30:00,Marcus Thompson,CAMS,Campaign tracker in Google Sheets,Built a self-serve campaign tracker that any team member can use without training,Pending,August Blend
+2025-05-01T09:00:00,Priya Sharma,CDPS,Data pipeline rebuild,Walkthrough of the new pipeline architecture and migration strategy,Approved,June Pilot
+2025-04-02T11:00:00,Marcus Thompson,CAMS,Campaign automation,How CAMS automated their weekly campaign reporting,Approved,May Planning Kickoff
+2025-03-10T15:00:00,Jordan Lee,DCX,Our toolbox,Overview of the design tools and workflows DCX uses daily,Approved,April Tool Spotlight
