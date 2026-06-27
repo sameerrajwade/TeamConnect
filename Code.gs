@@ -81,30 +81,6 @@ function submitWin(data) {
   return { success: true };
 }
 
-function submitShowAndTell(data) {
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sheet = ss.getSheetByName('ShowAndTell');
-  if (!sheet) return { success: false, error: 'ShowAndTell sheet not found' };
-  sheet.appendRow([
-    new Date(),
-    data.name,
-    data.team,
-    data.topic,
-    data.description,
-    'Pending'
-  ]);
-  MailApp.sendEmail({
-    to: NOTIFY_EMAIL,
-    subject: 'Three60 — New Show & Tell Submission',
-    body: 'New S&T topic submitted:\n\n' +
-          'Name: ' + data.name + '\n' +
-          'Team: ' + data.team + '\n' +
-          'Topic: ' + data.topic + '\n' +
-          'Description: ' + data.description
-  });
-  return { success: true };
-}
-
 function submitRating(data) {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const sheet = ss.getSheetByName('Ratings');
@@ -146,7 +122,8 @@ function submitBuzzAnswer(data) {
 function setupEmailReminder() {
   const triggers = ScriptApp.getProjectTriggers();
   triggers.forEach(t => {
-    if (t.getHandlerFunction() === 'checkAndSendReminders') {
+    const fn = t.getHandlerFunction();
+    if (fn === 'checkAndSendReminders' || fn === 'checkAndSendRecaps') {
       ScriptApp.deleteTrigger(t);
     }
   });
@@ -154,6 +131,11 @@ function setupEmailReminder() {
     .timeBased()
     .everyDays(1)
     .atHour(9)
+    .create();
+  ScriptApp.newTrigger('checkAndSendRecaps')
+    .timeBased()
+    .everyDays(1)
+    .atHour(10)
     .create();
 }
 
@@ -192,5 +174,66 @@ function checkAndSendReminders() {
         body: body
       });
     }
+  });
+}
+
+function checkAndSendRecaps() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const events = getSheetData(ss, 'Events');
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+  const targetDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+
+  events.forEach(evt => {
+    if (!evt.PlannedDate) return;
+    const evtDate = new Date(evt.PlannedDate);
+    const evtDay = new Date(evtDate.getFullYear(), evtDate.getMonth(), evtDate.getDate());
+    if (evtDay.getTime() !== targetDay.getTime()) return;
+
+    const wins = getSheetData(ss, 'Wins');
+    const thirtyAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const recentWins = wins.filter(w => new Date(w.Timestamp || w.Date) >= thirtyAgo);
+
+    const st = getSheetData(ss, 'ShowAndTell').find(
+      s => s.EventTitle === evt.Title && s.Status === 'Approved'
+    );
+
+    const config = getConfigData(ss);
+
+    let body = 'Three60 Recap — ' + evt.Title + '\n' +
+               '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+               'Thanks for joining yesterday\'s Three60 Connect!\n\n' +
+               'Quick stats:\n' +
+               '  • ' + recentWins.length + ' wins celebrated this month\n';
+
+    if (st) {
+      body += '  • S&T by ' + st.PresenterName + ': "' + st.Topic + '"\n';
+    }
+
+    if (evt.RecordingURL) {
+      body += '\nMissed it? Watch the recording:\n' + evt.RecordingURL + '\n';
+    }
+
+    if (config.PollQuestion) {
+      body += '\nThis month\'s poll is live: "' + config.PollQuestion + '"\n';
+      body += 'Vote on the Three60 page!\n';
+    }
+
+    const nextEvents = events
+      .filter(e => new Date(e.PlannedDate) > now)
+      .sort((a, b) => new Date(a.PlannedDate) - new Date(b.PlannedDate));
+
+    if (nextEvents.length > 0) {
+      const next = nextEvents[0];
+      body += '\nNext up: ' + next.Title + ' on ' + new Date(next.PlannedDate).toDateString() + '\n';
+    }
+
+    body += '\nSee you next month!\n— Three60';
+
+    MailApp.sendEmail({
+      to: NOTIFY_EMAIL,
+      subject: 'Three60 Recap — ' + evt.Title,
+      body: body
+    });
   });
 }

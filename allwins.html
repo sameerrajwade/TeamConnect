@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--navy:#1B2A4A;--crimson:#9B2335;--gold:#C4963A;--cream:#F5F0E8;--border:#E5E0D8;--text:#1A1A2E;--muted:#6B7280;--tan:#C4B99A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text)}
+.nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center}
+.logo-360{font-size:9px;font-weight:800;color:var(--gold);letter-spacing:-0.5px}
+.logo-text{font-size:16px;font-weight:700;color:#fff}
+.logo-text span{color:var(--gold)}
+.back{color:rgba(255,255,255,0.6);text-decoration:none;font-size:13px}
+.back:hover{color:#fff}
+.section{padding:40px 24px}
+.section-inner{max-width:720px;margin:0 auto}
+.section-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.section-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.section-subtitle{font-size:12px;color:var(--muted);margin-bottom:20px}
+.filter-tabs{display:flex;gap:8px;margin-bottom:18px}
+.filter-tab{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s}
+.filter-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.wins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.wa-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:14px;border-left:4px solid}
+.wa-card-dcx{border-left-color:var(--crimson)}
+.wa-card-cdps{border-left-color:var(--navy)}
+.wa-card-cams{border-left-color:var(--gold)}
+.wa-team{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.wa-team-dcx{color:var(--crimson)}.wa-team-cdps{color:var(--navy)}.wa-team-cams{color:var(--gold)}
+.wa-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.wa-desc{font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:5px}
+.wa-date{font-size:10px;color:var(--tan)}
+.loading{text-align:center;padding:60px 20px;color:var(--muted)}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{background:#1A1A2E;padding:20px 24px;text-align:center}
+.footer-copy{font-size:10px;color:rgba(255,255,255,0.2)}
+@media(max-width:768px){.wins-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="logo"><div class="logo-mark"><span class="logo-360">360</span></div><span class="logo-text">Three<span>60</span></span></div>
+  <a href="?" class="back">&larr; Back to Three60</a>
+</nav>
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">Archive</div>
+    <div class="section-title">All wins</div>
+    <div class="section-subtitle">Every win celebrated across all teams — all time.</div>
+    <div id="app"><div class="loading"><div class="loading-spinner"></div><p>Loading wins...</p></div></div>
+  </div>
+</section>
+<footer class="footer"><span class="footer-copy">&copy; 2025 Three60</span></footer>
+<script>
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function teamClass(t){t=(t||'').toUpperCase();if(t.indexOf('DCX')>=0)return'dcx';if(t.indexOf('CAMS')>=0)return'cams';return'cdps'}
+function formatDate(iso){return new Date(iso).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+
+var _allWins=[];
+function render(data){
+  _allWins=(data.wins||[]).slice().reverse();
+  var html='<div class="filter-tabs"><span class="filter-tab active" onclick="filterWins(\'all\',this)">All</span>';
+  html+='<span class="filter-tab" onclick="filterWins(\'DCX\',this)">DCX</span>';
+  html+='<span class="filter-tab" onclick="filterWins(\'CDPS\',this)">CDPS</span>';
+  html+='<span class="filter-tab" onclick="filterWins(\'CAMS\',this)">CAMS</span></div>';
+  html+='<div id="wins-grid"></div>';
+  document.getElementById('app').innerHTML=html;
+  showWins(_allWins);
+}
+function showWins(wins){
+  var html='<div class="wins-grid">';
+  if(wins.length===0)html+='<p style="color:var(--muted);grid-column:1/-1;padding:20px 0">No wins found.</p>';
+  wins.forEach(function(w){
+    var tc=teamClass(w.Team);
+    html+='<div class="wa-card wa-card-'+tc+'"><div class="wa-team wa-team-'+tc+'">'+esc(w.Team||'')+'</div>';
+    html+='<div class="wa-name">'+esc(w.Name||'')+'</div>';
+    html+='<div class="wa-desc">'+esc(w.Description||'')+'</div>';
+    html+='<div class="wa-date">'+(w.Timestamp?formatDate(w.Timestamp):w.Date?formatDate(w.Date):'')+'</div></div>';
+  });
+  html+='</div>';
+  document.getElementById('wins-grid').innerHTML=html;
+}
+function filterWins(team,el){
+  document.querySelectorAll('.filter-tab').forEach(function(t){t.classList.remove('active')});
+  el.classList.add('active');
+  if(team==='all')showWins(_allWins);
+  else showWins(_allWins.filter(function(w){return(w.Team||'').toUpperCase().indexOf(team)>=0}));
+}
+google.script.run.withSuccessHandler(render).withFailureHandler(function(e){document.getElementById('app').innerHTML='<p style="color:var(--crimson)">Error: '+e.message+'</p>'}).getData();
+</script>
+</body>
+</html>

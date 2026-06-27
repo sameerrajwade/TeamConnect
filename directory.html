@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--navy:#1B2A4A;--navy-light:#2E4272;--crimson:#9B2335;--gold:#C4963A;--cream:#F5F0E8;--border:#E5E0D8;--text:#1A1A2E;--muted:#6B7280}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text)}
+.nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center}
+.logo-360{font-size:9px;font-weight:800;color:var(--gold);letter-spacing:-0.5px}
+.logo-text{font-size:16px;font-weight:700;color:#fff}
+.logo-text span{color:var(--gold)}
+.back{color:rgba(255,255,255,0.6);text-decoration:none;font-size:13px}
+.back:hover{color:#fff}
+.section{padding:40px 24px}
+.section-inner{max-width:720px;margin:0 auto}
+.section-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.section-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.team-tabs{display:flex;gap:8px;margin-bottom:18px}
+.team-tab{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s}
+.team-tab.active-dcx{background:var(--crimson);color:#fff;border-color:var(--crimson)}
+.team-tab.active-cdps{background:var(--navy);color:#fff;border-color:var(--navy)}
+.team-tab.active-cams{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.team-tab.active-all{background:var(--navy);color:#fff;border-color:var(--navy)}
+.team-panel{display:none}
+.team-panel.visible{display:block}
+.manager-group{margin-bottom:22px}
+.manager-header{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.manager-header::before{content:'';width:3px;height:16px;border-radius:2px}
+.mgr-dcx::before{background:var(--crimson)}.mgr-cdps::before{background:var(--navy)}.mgr-cams::before{background:var(--gold)}
+.team-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.team-card{background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s}
+.team-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.tc-top{height:40px;position:relative}
+.tc-top-dcx{background:linear-gradient(135deg,var(--crimson),#c0445a)}
+.tc-top-cdps{background:linear-gradient(135deg,var(--navy),var(--navy-light))}
+.tc-top-cams{background:linear-gradient(135deg,var(--gold),#d4ad5a)}
+.tc-geo{position:absolute;right:10px;top:6px;width:26px;height:26px;border:1.5px solid rgba(255,255,255,0.15);border-radius:50%}
+.tc-avatar{width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;position:absolute;bottom:-22px;left:14px;z-index:2;overflow:hidden}
+.tc-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.tc-body{padding:28px 14px 14px}
+.tc-name{font-size:13px;font-weight:700;color:var(--navy)}
+.tc-role{font-size:10px;color:var(--muted);margin-bottom:8px}
+.tc-divider{height:1px;background:var(--border);margin:6px 0}
+.tc-fact{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px}
+.tc-fact-icon{font-size:12px;flex-shrink:0;margin-top:1px}
+.tc-fact-val{font-size:10px;color:var(--text);line-height:1.3}
+.tc-fact-val b{color:var(--navy)}
+.tc-fact-talent{font-style:italic;color:var(--muted)}
+.loading{text-align:center;padding:60px 20px;color:var(--muted)}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{background:#1A1A2E;padding:20px 24px;text-align:center}
+.footer-copy{font-size:10px;color:rgba(255,255,255,0.2)}
+@media(max-width:768px){.team-cards{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="logo"><div class="logo-mark"><span class="logo-360">360</span></div><span class="logo-text">Three<span>60</span></span></div>
+  <a href="?" class="back">&larr; Back to Three60</a>
+</nav>
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">Our People</div>
+    <div class="section-title">Full team directory</div>
+    <div id="app"><div class="loading"><div class="loading-spinner"></div><p>Loading directory...</p></div></div>
+  </div>
+</section>
+<footer class="footer"><span class="footer-copy">&copy; 2025 Three60</span></footer>
+<script>
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function initials(n){return(n||'').split(' ').map(function(w){return w[0]}).join('').toUpperCase().slice(0,2)}
+function teamClass(t){t=(t||'').toUpperCase();if(t.indexOf('DCX')>=0)return'dcx';if(t.indexOf('CAMS')>=0)return'cams';return'cdps'}
+function teamColor(t){t=(t||'').toUpperCase();if(t.indexOf('DCX')>=0)return'var(--crimson)';if(t.indexOf('CAMS')>=0)return'var(--gold)';return'var(--navy)'}
+
+function render(data){
+  var directory=data.directory||[];
+  var allTeams={};
+  directory.forEach(function(p){
+    var t=p.Team||'Other';if(!allTeams[t])allTeams[t]={};
+    var m=p.Manager||'Unassigned';if(!allTeams[t][m])allTeams[t][m]=[];
+    allTeams[t][m].push(p);
+  });
+  var teamNames=['DCX','CDPS','CAMS'];
+  var html='<div class="team-tabs"><span class="team-tab active-all" onclick="filterTeam(\'all\',this)">All</span>';
+  teamNames.forEach(function(t){html+='<span class="team-tab" onclick="filterTeam(\''+t+'\',this)">'+t+'</span>'});
+  html+='</div>';
+  teamNames.forEach(function(tn){
+    html+='<div class="team-panel-dir team-'+tn+'" style="display:block">';
+    var mgrs=allTeams[tn]||{};
+    Object.keys(mgrs).forEach(function(mgr){
+      html+='<div class="manager-group"><div class="manager-header mgr-'+teamClass(tn)+'">'+esc(mgr)+' &mdash; Manager</div><div class="team-cards">';
+      mgrs[mgr].forEach(function(p){
+        var tc=teamClass(tn);
+        html+='<div class="team-card"><div class="tc-top tc-top-'+tc+'"><div class="tc-geo"></div><div class="tc-avatar" style="background:'+teamColor(tn)+';color:'+(tc==='cams'?'var(--navy)':'#fff')+'">';
+        if(p.PhotoURL)html+='<img src="'+esc(p.PhotoURL)+'" alt="'+esc(p.Name)+'">';else html+=initials(p.Name);
+        html+='</div></div><div class="tc-body"><div class="tc-name">'+esc(p.Name||'')+'</div><div class="tc-role">'+esc(p.Role||'')+(p.Location?' &middot; '+esc(p.Location):'')+'</div><div class="tc-divider"></div>';
+        if(p.Beverage)html+='<div class="tc-fact"><span class="tc-fact-icon">&#x2615;</span><div class="tc-fact-val"><b>'+esc(p.BeverageType||'Coffee')+'</b> &middot; '+esc(p.Beverage)+'</div></div>';
+        if(p.Weekend)html+='<div class="tc-fact"><span class="tc-fact-icon">&#x1F324;</span><div class="tc-fact-val">'+esc(p.Weekend)+'</div></div>';
+        if(p.HiddenTalent)html+='<div class="tc-fact"><span class="tc-fact-icon">&#x2728;</span><div class="tc-fact-val tc-fact-talent">'+esc(p.HiddenTalent)+'</div></div>';
+        html+='</div></div>';
+      });
+      html+='</div></div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('app').innerHTML=html;
+}
+function filterTeam(team,el){
+  document.querySelectorAll('.team-tab').forEach(function(t){t.className='team-tab'});
+  if(team==='all'){el.classList.add('active-all');document.querySelectorAll('.team-panel-dir').forEach(function(p){p.style.display='block'})}
+  else{el.classList.add('active-'+teamClass(team));document.querySelectorAll('.team-panel-dir').forEach(function(p){p.style.display=p.classList.contains('team-'+team)?'block':'none'})}
+}
+google.script.run.withSuccessHandler(render).withFailureHandler(function(e){document.getElementById('app').innerHTML='<p style="color:var(--crimson)">Error: '+e.message+'</p>'}).getData();
+</script>
+</body>
+</html>

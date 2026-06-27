@@ -263,6 +263,15 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; }
 .footer-copy { font-size: 10px; color: rgba(255,255,255,0.2); }
 
+/* WELCOME BANNER */
+.welcome-banner { background: linear-gradient(135deg, rgba(196,150,58,0.08), rgba(196,150,58,0.03)); border: 1px solid rgba(196,150,58,0.2); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 14px; position: relative; }
+.welcome-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+.welcome-content { flex: 1; }
+.welcome-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.welcome-text { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+.welcome-cta { background: var(--gold); color: var(--navy); border: none; padding: 6px 16px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+.welcome-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 16px; color: var(--muted); cursor: pointer; padding: 0; line-height: 1; }
+
 /* CONFETTI */
 .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
 .confetti-piece { position: absolute; width: 8px; height: 8px; top: -10px; animation: confetti-fall 2.5s ease-in forwards; }
@@ -400,8 +409,36 @@ function calendarUrl(evt) {
          '&dates=' + start + '/' + end + '&details=' + details;
 }
 
+function parseEventDateTime(dateStr, timeStr) {
+  var d = new Date(dateStr);
+  if (timeStr) {
+    var match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (match) {
+      var hours = parseInt(match[1]);
+      var mins = parseInt(match[2]);
+      var ampm = match[3].toUpperCase();
+      if (ampm === 'PM' && hours !== 12) hours += 12;
+      if (ampm === 'AM' && hours === 12) hours = 0;
+      d.setHours(hours, mins, 0, 0);
+    }
+  }
+  return d;
+}
+
 function initials(name) {
   return (name || '').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+}
+
+function dismissWelcome() {
+  var banner = document.getElementById('welcome-banner');
+  if (banner) banner.style.display = 'none';
+  try { localStorage.setItem('three60_welcome_dismissed', '1'); } catch(e) {}
+}
+
+function openFormUrl(key) {
+  var url = window._config && window._config[key];
+  if (url && url.indexOf('http') === 0) window.open(url, '_blank');
+  else alert('Form URL not configured yet. Add ' + key + ' to the Config tab in your Three60 sheet.');
 }
 
 function fireConfetti() {
@@ -462,6 +499,8 @@ function render(data) {
   var totalWins = wins.length;
   var avgRating = ratings.length > 0 ? (ratings.reduce(function(s, r) { return s + Number(r.Rating || 0); }, 0) / ratings.length).toFixed(1) : '—';
 
+  window._config = config;
+
   var html = '';
 
   // EVENTS
@@ -469,6 +508,23 @@ function render(data) {
   html += '<div class="section-eyebrow">Monthly Sessions</div>';
   html += '<div class="section-title">Upcoming events</div>';
   html += '<div class="section-subtitle">Each 90-min session — activity, Show &amp; Tell, open discussion.</div>';
+
+  if (!localStorage.getItem('three60_welcome_dismissed')) {
+    html += '<div class="welcome-banner" id="welcome-banner">';
+    html += '<div class="welcome-icon">&#x1F44B;</div>';
+    html += '<div class="welcome-content">';
+    html += '<div class="welcome-title">Welcome to Three60!</div>';
+    html += '<div class="welcome-text">We\'re a cross-team community of DCX, CDPS, and CAMS. Every month we meet for 90 minutes — a team activity, a Show &amp; Tell presentation, and open discussion. Jump in, get to know your colleagues, and share what you\'re working on.</div>';
+    html += '<a class="welcome-cta" href="?page=directory" style="margin-right:8px">Join the directory</a>';
+    html += '<button class="welcome-cta" style="background:transparent;color:var(--navy);border:1px solid var(--border)" onclick="dismissWelcome()">Got it</button>';
+    html += '</div>';
+    html += '<button class="welcome-close" onclick="dismissWelcome()" title="Dismiss">&times;</button>';
+    html += '</div>';
+  }
+
+  if (!nextEvent && upcomingEvents.length === 0) {
+    html += '<div style="text-align:center;padding:40px 20px;color:var(--muted)"><p style="font-size:18px;margin-bottom:6px">No upcoming events right now</p><p style="font-size:13px">Stay tuned — the next Three60 Connect will be announced soon!</p></div>';
+  }
 
   if (nextEvent) {
     html += '<div class="featured-card"><div class="feat-header"><div class="feat-header-left">';
@@ -497,7 +553,7 @@ function render(data) {
       html += '<div><div class="agenda-p-name">' + esc(nextST.PresenterName) + ' <span class="agenda-p-team" style="background:rgba(' + teamRgb(tc) + ',0.1);color:' + teamColor(nextST.Team) + '">' + esc(nextST.Team) + '</span></div>';
       html += '<div class="agenda-p-topic">"' + esc(nextST.Topic) + '"</div></div></div>';
     } else {
-      html += '<div class="agenda-desc" style="color:var(--navy);font-weight:600;cursor:pointer">Submit a topic &rarr;</div>';
+      html += '<div class="agenda-desc" style="color:var(--navy);font-weight:600;cursor:pointer" onclick="openFormUrl(\'STFormURL\')">Submit a topic &rarr;</div>';
     }
     html += '</div></div>';
     html += '<div class="agenda-item"><span class="agenda-time">30 min</span><div class="agenda-content"><div class="agenda-title">Open Discussion</div><div class="agenda-desc">Q&amp;A and open floor</div></div></div>';
@@ -505,7 +561,7 @@ function render(data) {
     html += '<div class="feat-footer"><a href="' + calendarUrl(nextEvent) + '" target="_blank" class="btn-calendar">&#x1F4C5; Add to Google Calendar</a>';
     if (nextEvent.MeetLink) html += '<a href="' + esc(nextEvent.MeetLink) + '" target="_blank" class="btn-join">&#x1F3A5; Join</a>';
     html += '</div></div>';
-    window._nextEventDate = new Date(nextEvent.PlannedDate);
+    window._nextEventDate = parseEventDateTime(nextEvent.PlannedDate, nextEvent.Time);
   }
 
   if (upcomingEvents.length > 0) {
@@ -520,7 +576,7 @@ function render(data) {
       html += '<div class="agenda-item"><span class="agenda-time">30m</span><div class="agenda-content"><div class="agenda-title">' + esc(evt.Activity || 'Team Activity') + '</div></div></div>';
       html += '<div class="agenda-item"><span class="agenda-time">30m</span><div class="agenda-content"><div class="agenda-title">Show &amp; Tell</div>';
       if (st) html += '<div class="agenda-desc">' + esc(st.PresenterName) + ': "' + esc(st.Topic) + '"</div>';
-      else html += '<div class="agenda-desc" style="color:var(--navy);font-weight:600;cursor:pointer">Submit a topic &rarr;</div>';
+      else html += '<div class="agenda-desc" style="color:var(--navy);font-weight:600;cursor:pointer" onclick="openFormUrl(\'STFormURL\')">Submit a topic &rarr;</div>';
       html += '</div></div>';
       html += '<div class="agenda-item"><span class="agenda-time">30m</span><div class="agenda-content"><div class="agenda-title">Open Discussion</div></div></div></div>';
       html += '<div class="event-footer"><a href="' + calendarUrl(evt) + '" target="_blank" class="btn-calendar">&#x1F4C5; Add to Google Calendar</a></div></div>';
@@ -532,7 +588,7 @@ function render(data) {
   // WINS
   html += '<section class="wins-section" id="wins"><div class="wins-header"><div class="wins-title">&#x1F3C6; Wins <em>this month</em></div>';
   html += '<div class="wins-actions"><span class="wins-counter" id="wins-counter"></span>';
-  html += '<button class="btn-win-submit" onclick="fireConfetti()">+ Submit a win</button></div></div>';
+  html += '<button class="btn-win-submit" onclick="fireConfetti(); openFormUrl(\'WinFormURL\')">+ Submit a win</button></div></div>';
   html += '<div class="wins-track-wrap"><div class="wins-track" id="wins-track">';
   if (recentWins.length === 0) {
     html += '<div style="color:rgba(255,255,255,0.4);padding:20px;text-align:center;width:100%">No wins yet this month — be the first!</div>';

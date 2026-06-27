@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--navy:#1B2A4A;--crimson:#9B2335;--gold:#C4963A;--cream:#F5F0E8;--border:#E5E0D8;--text:#1A1A2E;--muted:#6B7280}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text)}
+.nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center}
+.logo-360{font-size:9px;font-weight:800;color:var(--gold);letter-spacing:-0.5px}
+.logo-text{font-size:16px;font-weight:700;color:#fff}
+.logo-text span{color:var(--gold)}
+.back{color:rgba(255,255,255,0.6);text-decoration:none;font-size:13px}
+.back:hover{color:#fff}
+.section{padding:40px 24px}
+.section-inner{max-width:720px;margin:0 auto}
+.section-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.section-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.section-subtitle{font-size:12px;color:var(--muted);margin-bottom:20px}
+.past-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.past-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px}
+.past-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.past-title{font-size:14px;font-weight:600;color:var(--navy)}
+.past-date{font-size:10px;color:var(--muted)}
+.past-host{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.past-host-dot{width:6px;height:6px;border-radius:50%}
+.past-st{font-size:11px;color:var(--muted);margin-bottom:5px}
+.past-st span{color:var(--navy);font-weight:600}
+.past-desc{font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:8px}
+.past-links{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.past-link{font-size:10px;font-weight:700;color:var(--navy);padding:4px 8px;border-radius:5px;border:1px solid var(--border);text-decoration:none}
+.star-row{display:flex;align-items:center;gap:3px;border-top:1px solid var(--border);padding-top:8px}
+.star-label{font-size:10px;color:var(--muted);margin-right:5px}
+.star{font-size:18px;cursor:pointer;color:var(--border);transition:color .15s,transform .15s;user-select:none}
+.star:hover,.star.lit{color:var(--gold)}
+.star:hover{transform:scale(1.2)}
+.star-msg{font-size:10px;color:var(--gold);font-weight:700;margin-left:8px;opacity:0;transition:opacity .3s}
+.star-msg.show{opacity:1}
+.loading{text-align:center;padding:60px 20px;color:var(--muted)}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{background:#1A1A2E;padding:20px 24px;text-align:center}
+.footer-copy{font-size:10px;color:rgba(255,255,255,0.2)}
+@media(max-width:768px){.past-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="logo"><div class="logo-mark"><span class="logo-360">360</span></div><span class="logo-text">Three<span>60</span></span></div>
+  <a href="?" class="back">&larr; Back to Three60</a>
+</nav>
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">Archive</div>
+    <div class="section-title">All past events</div>
+    <div class="section-subtitle">Every Three60 Connect session with recordings, slides, and notes.</div>
+    <div id="app"><div class="loading"><div class="loading-spinner"></div><p>Loading events...</p></div></div>
+  </div>
+</section>
+<footer class="footer"><span class="footer-copy">&copy; 2025 Three60</span></footer>
+<script>
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function formatDate(iso){return new Date(iso).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+function teamColor(t){t=(t||'').toUpperCase();if(t.indexOf('DCX')>=0)return'#9B2335';if(t.indexOf('CAMS')>=0)return'#C4963A';return'#1B2A4A'}
+
+function render(data){
+  var events=(data.events||[]).slice();
+  var showAndTell=data.showAndTell||[];
+  var now=new Date();
+  var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var pastEvents=events.filter(function(e){return new Date(e.PlannedDate)<today}).sort(function(a,b){return new Date(b.PlannedDate)-new Date(a.PlannedDate)});
+
+  if(pastEvents.length===0){document.getElementById('app').innerHTML='<p style="color:var(--muted);padding:20px 0">No past events yet.</p>';return}
+
+  var html='<div class="past-grid">';
+  pastEvents.forEach(function(evt){
+    var st=showAndTell.find(function(s){return s.EventTitle===evt.Title});
+    html+='<div class="past-card"><div class="past-header"><div class="past-title">'+esc(evt.Title)+'</div>';
+    html+='<div class="past-date">'+formatDate(evt.PlannedDate)+'</div></div>';
+    html+='<div class="past-host"><div class="past-host-dot" style="background:'+teamColor(evt.HostTeam)+'"></div>Hosted by <strong style="color:var(--navy);margin-left:3px">'+esc(evt.HostTeam||'')+'</strong></div>';
+    if(st)html+='<div class="past-st">S&amp;T: <span>'+esc(st.PresenterName)+'</span> &mdash; "'+esc(st.Topic)+'"</div>';
+    if(evt.Summary)html+='<div class="past-desc">'+esc(evt.Summary)+'</div>';
+    html+='<div class="past-links">';
+    if(evt.RecordingURL)html+='<a href="'+esc(evt.RecordingURL)+'" target="_blank" class="past-link">&#x25B6; Recording</a>';
+    if(evt.SlidesURL)html+='<a href="'+esc(evt.SlidesURL)+'" target="_blank" class="past-link">&#x1F4C4; Slides</a>';
+    if(evt.NotesURL)html+='<a href="'+esc(evt.NotesURL)+'" target="_blank" class="past-link">&#x1F4DD; Notes</a>';
+    html+='</div>';
+    html+='<div class="star-row"><span class="star-label">Rate:</span>';
+    for(var i=1;i<=5;i++)html+='<span class="star" onclick="rateEvent(this,'+i+',\''+esc(evt.Title).replace(/'/g,"\\'")+'\')">&#x2605;</span>';
+    html+='<span class="star-msg"></span></div></div>';
+  });
+  html+='</div>';
+  document.getElementById('app').innerHTML=html;
+}
+
+function rateEvent(star,val,eventTitle){
+  var row=star.parentElement;
+  row.querySelectorAll('.star').forEach(function(s,i){s.classList.toggle('lit',i<val)});
+  var msg=row.querySelector('.star-msg');
+  msg.textContent='Submitting...';msg.classList.add('show');
+  google.script.run
+    .withSuccessHandler(function(){msg.textContent='✓ Submitted!'})
+    .withFailureHandler(function(){msg.textContent='Error'})
+    .submitRating({eventTitle:eventTitle,rating:val});
+}
+
+google.script.run.withSuccessHandler(render).withFailureHandler(function(e){document.getElementById('app').innerHTML='<p style="color:var(--crimson)">Error: '+e.message+'</p>'}).getData();
+</script>
+</body>
+</html>
